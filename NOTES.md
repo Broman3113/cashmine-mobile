@@ -29,7 +29,7 @@ a failed claim returns its amount to available. Options I compared:
 - C. Lock the asset until the claim settles. No double claims, but "available" is wrong for ~20 s and a
   legitimate second claim is blocked.
 
-I chose **B**: the balance reacts immediately (fixes "didn't change, so I claimed again"), Max uses the adjusted
+I asked the AI for options before choosing (ai-logs/claude-code-session.md, line 1005). I chose **B**: the balance reacts immediately (fixes "didn't change, so I claimed again"), Max uses the adjusted
 balance, the total does not drop until money actually leaves, and a jump back on failure is explained instead of
 silent.
 
@@ -56,16 +56,16 @@ All conversations are in [`ai-logs/`](ai-logs/).
 
 1. **A prompt that did not work.** My first prompts were long and heavily structured; the answers grew just as
    long and I spent time reading instead of deciding. I switched to short, plain prompts with one task each.
-   Log: _[link]_
+   (ai-logs/claude-code-session.md, line 8)
 2. **Risky AI output.** My personal `.claude/settings.local.json` was staged when the session started, and the
    AI went to commit without checking what was staged. I caught it in `git status`, had it unstage the file, and
-   made "add files explicitly, never `git add .`" a rule. Log: _[link]_
+   made "add files explicitly, never `git add .`" a rule. (ai-logs/claude-code-session.md, line 423)
 3. **Where I disagreed.** The AI planned to delete stored claim attempts on every token change. That would lose
    an unknown claim if the user re-enters the same token after a 401. We keep them under a SHA-256 hash of the
-   token instead, and load only the current token's attempts. Log: _[link]_
+   token instead, and load only the current token's attempts. (ai-logs/claude-code-session.md, line 496)
 
 Also: I asked for the money tests before the implementation, reviewed the edge cases, and added two the AI had
-not covered (pasted values with spaces, dropping a trailing dot on blur). Log: _[link]_
+not covered (pasted values with spaces, dropping a trailing dot on blur) (ai-logs/claude-code-session.md, line 759).
 
 ## Not done / known issues
 

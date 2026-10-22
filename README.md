@@ -1,6 +1,6 @@
 # CashMine mobile
 
-**Live:** _[live link]_ (open on a phone)
+**Live:** https://broman3113-cashmine-task.expo.app (open on a phone)
 
 A slice of the CashMine app built with Expo (React Native, TypeScript) and shipped as a web build: see payback
 balances and claim them. Decisions, AI notes and known issues are in [`NOTES.md`](NOTES.md).
