@@ -49,6 +49,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShadowVisible: false }}>
             <Stack.Protected guard={hasToken}>
               <Stack.Screen name="index" />
+              <Stack.Screen name="claim" />
             </Stack.Protected>
             <Stack.Protected guard={!hasToken}>
               <Stack.Screen name="token" options={{ title: 'API token' }} />
