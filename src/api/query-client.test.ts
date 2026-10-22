@@ -1,5 +1,5 @@
 import { ApiError } from './api-error';
-import { createQueryClient, isRetryableError } from './query-client';
+import { createQueryClient, getRetryDelay, isRetryableError } from './query-client';
 
 describe('isRetryableError', () => {
   it.each([
@@ -13,6 +13,21 @@ describe('isRetryableError', () => {
     ['unknown error', new Error('boom'), false],
   ])('%s → %s', (_case, error, expected) => {
     expect(isRetryableError(error)).toBe(expected);
+  });
+});
+
+describe('getRetryDelay', () => {
+  it('waits as long as a 429 asks', () => {
+    const rateLimited = new ApiError('http', 'Too many requests', 429, { retryAfterMs: 2300 });
+    expect(getRetryDelay(0, rateLimited)).toBe(2300);
+    expect(getRetryDelay(3, rateLimited)).toBe(2300);
+  });
+
+  it('backs off exponentially otherwise, capped at 30s', () => {
+    const serverError = new ApiError('http', 'Unavailable', 503);
+    expect(getRetryDelay(0, serverError)).toBe(1000);
+    expect(getRetryDelay(1, serverError)).toBe(2000);
+    expect(getRetryDelay(10, serverError)).toBe(30_000);
   });
 });
 

@@ -8,8 +8,7 @@ _One paragraph about what the app does (filled in for the task)._
 
 ```bash
 npm ci
-cp .env.example .env.local   # then set EXPO_PUBLIC_API_URL
-npm run web                  # http://localhost:8081
+npm run web   # http://localhost:8081, then paste your API token in the app
 ```
 
 | Command                  | What it does                                                            |
@@ -43,10 +42,7 @@ AI conversations are in [`ai-logs/`](ai-logs/); the rules the AI followed are in
 
 ## Decisions and trade-offs
 
-- **Token in the web bundle.** The API URL comes from `EXPO_PUBLIC_API_URL` and is inlined at build time, so it is
-  visible in the live site's JS. Accepted for a test API to keep the app a static build. A real product would use a
-  per-user session or a server route that keeps the secret server-side.
-- _..._
+See [`NOTES.md`](NOTES.md).
 
 ## Known issues / next steps
 

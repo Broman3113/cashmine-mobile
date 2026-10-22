@@ -1,6 +1,10 @@
-import type { z } from 'zod';
+import { z } from 'zod';
 
 import { ApiError } from './api-error';
+import { getToken, rejectToken } from './token-store';
+
+/** The only place the API address is defined. The token is never part of it: it goes in a header. */
+export const API_BASE_URL = 'https://task-api.cashmine.io';
 
 type RequestOptions<TSchema extends z.ZodType> = {
   /** Validates the response body. The result type comes from the schema. */
@@ -13,11 +17,23 @@ type RequestOptions<TSchema extends z.ZodType> = {
   signal?: AbortSignal;
 };
 
+const errorEnvelopeSchema = z.object({
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    field: z.string().nullish(),
+    retryAfterMs: z.number().nonnegative().nullish(),
+  }),
+});
+
 /** The only place that talks to the API. */
 export async function request<TSchema extends z.ZodType>(
   path: string,
   { schema, method = 'GET', query, body, headers, signal }: RequestOptions<TSchema>,
 ): Promise<z.infer<TSchema>> {
+  // Read once: if the token changes while this request is in flight, a 401 must not reject the new one.
+  const token = getToken();
+
   let response: Response;
   try {
     response = await fetch(buildUrl(path, query), {
@@ -26,6 +42,7 @@ export async function request<TSchema extends z.ZodType>(
       headers: {
         Accept: 'application/json',
         ...(body !== undefined && { 'Content-Type': 'application/json' }),
+        ...(token && { Authorization: `Bearer ${token}` }),
         ...headers,
       },
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -38,7 +55,8 @@ export async function request<TSchema extends z.ZodType>(
   const data = await readJson(response);
 
   if (!response.ok) {
-    throw new ApiError('http', messageFrom(data) ?? `HTTP ${response.status}`, response.status);
+    if (response.status === 401 && token) rejectToken(token);
+    throw toHttpError(response, data);
   }
 
   const parsed = schema.safeParse(data);
@@ -48,17 +66,9 @@ export async function request<TSchema extends z.ZodType>(
   return parsed.data;
 }
 
-/**
- * Appends `path` and `query` to the base URL from env. The base URL may already carry the token,
- * in its path (`/t/abc`) or query (`?token=abc`); both are kept.
- */
+/** Appends `path` and `query` to the base URL. */
 export function buildUrl(path: string, query?: RequestOptions<z.ZodType>['query']): string {
-  // Must be written out in full: Expo inlines EXPO_PUBLIC_* values only for literal process.env.NAME.
-  const base = process.env.EXPO_PUBLIC_API_URL;
-  if (!base) throw new Error('EXPO_PUBLIC_API_URL is not set. Add it to .env.local.');
-
-  const url = new URL(base);
-  url.pathname = `${url.pathname.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  const url = new URL(path.replace(/^\/?/, '/'), API_BASE_URL);
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== undefined) url.searchParams.set(key, String(value));
   }
@@ -75,12 +85,19 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
-/** Uses the server's own error text when it sends one, e.g. `{ "message": "Insufficient balance" }`. */
-function messageFrom(data: unknown): string | undefined {
-  if (data && typeof data === 'object') {
-    const { message, error } = data as { message?: unknown; error?: unknown };
-    if (typeof message === 'string') return message;
-    if (typeof error === 'string') return error;
-  }
-  return undefined;
+/** Uses the API's error envelope when there is one; a proxy or gateway may answer with something else. */
+function toHttpError(response: Response, data: unknown): ApiError {
+  const envelope = errorEnvelopeSchema.safeParse(data);
+  const details = envelope.success ? envelope.data.error : undefined;
+  return new ApiError('http', details?.message ?? `HTTP ${response.status}`, response.status, {
+    code: details?.code,
+    field: details?.field ?? undefined,
+    retryAfterMs: details?.retryAfterMs ?? retryAfterHeaderMs(response),
+  });
+}
+
+/** `Retry-After` in seconds, the fallback when the body has no `retryAfterMs`. */
+function retryAfterHeaderMs(response: Response): number | undefined {
+  const seconds = Number(response.headers.get('Retry-After'));
+  return response.headers.has('Retry-After') && Number.isFinite(seconds) && seconds >= 0 ? seconds * 1000 : undefined;
 }
