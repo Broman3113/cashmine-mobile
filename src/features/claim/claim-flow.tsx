@@ -11,6 +11,7 @@ import {
   validateClaimAmount,
 } from '@/lib/money';
 import { spacing } from '@/theme/spacing';
+import { typography } from '@/theme/typography';
 import { useTheme } from '@/theme/use-theme';
 import { Button } from '@/ui/button';
 import { Card } from '@/ui/card';
@@ -146,6 +147,7 @@ export function ClaimFlow({ balance, onCreated, onAmountRejected }: ClaimFlowPro
         <Button
           title="Max"
           variant="secondary"
+          style={styles.maxButton}
           onPress={() => {
             setInput(maxClaimAmount({ available, decimals, inFlight: [] }));
             setIsTouched(true);
@@ -189,6 +191,9 @@ function submitError(error: unknown): string {
 
 const styles = StyleSheet.create({
   form: { gap: spacing.lg },
-  amountRow: { flexDirection: 'row', alignItems: 'flex-end', gap: spacing.md },
+  amountRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   amountField: { flex: 1 },
+  // Lines Max up with the input box: skip the Field's label row (label line + gap). Aligning to the bottom
+  // would break as soon as an error appears under the input. A md Button is as tall as the input box (48).
+  maxButton: { marginTop: typography.label.lineHeight + spacing.xs },
 });
