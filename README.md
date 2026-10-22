@@ -1,8 +1,9 @@
 # CashMine mobile
 
-**Live:** _link_ (open on a phone) · Expo (React Native, TypeScript), delivered as a web app.
+**Live:** _[live link]_ (open on a phone)
 
-_One paragraph about what the app does (filled in for the task)._
+A slice of the CashMine app built with Expo (React Native, TypeScript) and shipped as a web build: see payback
+balances and claim them. Decisions, AI notes and known issues are in [`NOTES.md`](NOTES.md).
 
 ## Run locally
 
@@ -11,39 +12,22 @@ npm ci
 npm run web   # http://localhost:8081, then paste your API token in the app
 ```
 
-| Command                  | What it does                                                            |
-| ------------------------ | ----------------------------------------------------------------------- |
-| `npm run web`            | dev server in the browser (`npx expo start` for a dev build on a phone) |
-| `npm run check`          | lint + typecheck + tests (web, iOS and Android test projects)           |
-| `npm run deploy`         | web export + EAS Hosting production deploy                              |
-| `npm run deploy:preview` | same, to a separate preview URL                                         |
+| Command         | What it does                                                  |
+| --------------- | ------------------------------------------------------------- |
+| `npm run web`   | dev server in the browser                                     |
+| `npm run check` | lint + typecheck + tests (web, iOS and Android test projects) |
 
-## How this repository was built
+## What works
 
-The first five commits are a **template prepared before the task**: project setup, theme, UI primitives,
-API layer and a form example, each with tests. **Work on the task starts after them.**
-AI conversations are in [`ai-logs/`](ai-logs/); the rules the AI followed are in [`CLAUDE.md`](CLAUDE.md).
+- **Token:** asked for on first open, kept in the browser, "Change token" on Home; a rejected or expired token
+  sends you back to the token screen.
+- **Balances (Home):** each asset's available, pending and claiming; "Available to claim" in USD and the total
+  incl. pending & claiming; "Updated Xs ago" from the snapshot; refreshes every 15 s; loading, error with retry,
+  empty and refresh button.
+- **Claim:** pick an asset, enter an amount or tap Max, see the fee and what you receive, review and confirm.
+  Validation follows the API rules. The claim status is polled until it completes or fails. Your claim shows on
+  Home right away. If the result is unknown, the same request is resent safely and you can check again.
+- **Tests:** amount logic (parsing, normalizing, validation, fee, receive, max, USD totals, display rounding),
+  the in-flight claim overlay, idempotent resends, the API client and token handling.
 
-## Architecture
-
-- **Expo Router + TypeScript (strict)**, static web output (`web.output: "single"`).
-- **Layers:** `app` (routes) → `features` → `ui` / `api` / `theme`. Lower layers never import higher ones, features
-  never import each other; enforced by ESLint.
-- **API:** one `request()` function; every response is validated with zod; typed `ApiError` (network / http / parse).
-- **Server state:** TanStack Query. Queries retry only network, 5xx and 429 errors; mutations never retry.
-- **Forms:** react-hook-form + zod, validation on touch, server errors next to the field.
-- **UI:** small primitives on CashMine's design tokens, light and dark mode, keyboard handling via
-  react-native-keyboard-controller, mobile-first layout capped at 560px on desktop.
-- **Tests:** jest runs every test for web (React Testing Library, DOM) and iOS/Android (React Native Testing Library).
-
-## What was built for the task
-
-- _..._
-
-## Decisions and trade-offs
-
-See [`NOTES.md`](NOTES.md).
-
-## Known issues / next steps
-
-- _..._
+Not built: the Activity screen. See [`NOTES.md`](NOTES.md) for everything that is missing.
