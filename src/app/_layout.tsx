@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { createQueryClient, listenToAppFocus, subscribeToToken, useTokenState } from '@/api';
+import { clearInFlightClaims } from '@/features/balances';
 import { useTheme } from '@/theme/use-theme';
 
 // Refetch stale queries when the app returns from the background (no-op on web, where tabs already do this).
@@ -23,6 +24,7 @@ export default function RootLayout() {
       subscribeToToken(() => {
         void queryClient.cancelQueries();
         queryClient.clear();
+        clearInFlightClaims();
       }),
     [queryClient],
   );
@@ -50,6 +52,7 @@ export default function RootLayout() {
             <Stack.Protected guard={hasToken}>
               <Stack.Screen name="index" />
               <Stack.Screen name="claim" />
+              <Stack.Screen name="claims/[id]" />
             </Stack.Protected>
             <Stack.Protected guard={!hasToken}>
               <Stack.Screen name="token" options={{ title: 'API token' }} />
