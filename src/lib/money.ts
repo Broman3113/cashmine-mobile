@@ -1,4 +1,4 @@
-import Big from 'big.js';
+import { Big } from 'big.js';
 
 // Amounts are decimal strings in the asset's unit. All math goes through big.js; strings leave this file
 // via toFixed(), which never uses exponent notation ("0.00000001", not "1e-8").
