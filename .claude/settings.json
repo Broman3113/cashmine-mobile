@@ -1,5 +1,37 @@
 {
-  "enabledPlugins": {
-    "expo@claude-plugins-official": true
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledPlugins": { "expo@claude-plugins-official": true },
+  "permissions": {
+    "allow": [
+      "Bash(npm run check)",
+      "Bash(npm run lint)",
+      "Bash(npm run typecheck)",
+      "Bash(npm test *)",
+      "Bash(npx jest *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ],
+    "ask": [
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(npm run deploy)",
+      "Bash(npm run deploy:preview)",
+      "Bash(eas *)",
+      "Bash(gh *)",
+      "Bash(npm install *)",
+      "Bash(npx expo install *)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Bash(cat .env*)",
+      "Bash(printenv *)",
+      "Bash(env)",
+      "Bash(curl *)",
+      "Bash(wget *)"
+    ]
   }
 }
