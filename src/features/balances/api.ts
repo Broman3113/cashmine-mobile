@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { request } from '@/api';
@@ -36,4 +36,10 @@ export function useBalances() {
     queryFn: ({ signal }) => request('/v1/balances', { schema: balancesSchema, signal }),
     refetchInterval: SNAPSHOT_INTERVAL_MS,
   });
+}
+
+/** Refetches the snapshot, e.g. after a claim settles or the server says the balance changed. */
+export function useRefreshBalances() {
+  const queryClient = useQueryClient();
+  return () => void queryClient.invalidateQueries({ queryKey: balancesKeys.all });
 }

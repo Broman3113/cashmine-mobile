@@ -7,7 +7,7 @@ import { Button } from '@/ui/button';
 import { Card } from '@/ui/card';
 import { Text } from '@/ui/text';
 
-import { useBalances } from './api';
+import { useAdjustedBalances } from './use-adjusted-balances';
 import { AssetCard } from './asset-card';
 import { BalancesSummary } from './balances-summary';
 
@@ -18,7 +18,7 @@ type BalancesPanelProps = {
 /** Home content: every state of the balances query (loading, error, empty, data, failed refresh). */
 export function BalancesPanel({ onClaim }: BalancesPanelProps) {
   const { colors } = useTheme();
-  const { data, error, isPending, isError, isFetching, refetch } = useBalances();
+  const { data, error, isPending, isError, isFetching, refetch } = useAdjustedBalances();
   const handleRefresh = () => void refetch();
 
   if (isPending) {
@@ -30,7 +30,7 @@ export function BalancesPanel({ onClaim }: BalancesPanelProps) {
     );
   }
 
-  if (isError && !data) {
+  if (!data) {
     return (
       <Card>
         <Text tone="negative" role="alert">
